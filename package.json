@@ -1,15 +1,15 @@
 {
   "name": "react-highlight-within",
-  "version": "1.0.0",
-  "description": "Zero-dependency React utility to highlight search terms within any component tree",
+  "version": "2.0.0",
+  "description": "React component and function for highlighting search matches across rendered content, nested children, inputs, and textareas",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
+      "types": "./dist/index.d.ts",
       "import": "./dist/index.mjs",
-      "require": "./dist/index.js",
-      "types": "./dist/index.d.ts"
+      "require": "./dist/index.js"
     }
   },
   "files": [
@@ -17,6 +17,9 @@
   ],
   "scripts": {
     "build": "tsup src/index.tsx --format cjs,esm --dts --clean",
+    "build:example": "vite build --config example/vite.config.ts",
+    "dev:example": "vite --config example/vite.config.ts",
+    "preview:example": "vite preview --config example/vite.config.ts",
     "prepublishOnly": "npm run build"
   },
   "keywords": [
@@ -33,10 +36,14 @@
     "react": ">=16.8.0"
   },
   "devDependencies": {
-    "@types/react": "^18.0.0",
-    "react": "^19.2.0",
-    "tsup": "^8.0.0",
-    "typescript": "^5.0.0"
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.1",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
+    "tsup": "^8.5.1",
+    "typescript": "^6.0.3",
+    "vite": "^8.0.12"
   },
   "repository": {
     "type": "git",

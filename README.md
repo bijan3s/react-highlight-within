@@ -1,57 +1,87 @@
 # react-highlight-within
 
-Zero-dependency React utility to highlight search terms within any component tree.
-
 <p align="center">
-  <img src="./public/images/highlight-example.svg" alt="Highlight within example" width="700" />
+  <img src="./public/images/highlight-example.png" alt="Futuristic preview of rendered content, input, and textarea highlighting" width="900" />
 </p>
 
-_*Example: highlighting search terms inside a component tree.*_
+Component-first search highlighting for real React UIs.
 
-## Installation
+If people search in your interface, make the match impossible to miss across rendered content, nested children, inputs, and textareas.
+
+## Install
 
 ```bash
 npm install react-highlight-within
 ```
 
-## Usage
+```bash
+yarn add react-highlight-within
+```
+
+## Use It
 
 ```tsx
-import { highlightWithin } from "react-highlight-within";
+import { HighlightWithin } from "react-highlight-within";
 
 function SearchResults() {
   const [search, setSearch] = useState("react");
 
   return (
-    <div>
-      {highlightWithin(
-        <div>
-          <h1>Learn React</h1>
-          <p>React is awesome!</p>
-        </div>,
-        {
-          search,
-          bgColor: "#ffeb3b",
-          textColor: "#000",
-          caseSensitive: false,
-        }
-      )}
-    </div>
+    <>
+      <input
+        value={search}
+        onChange={(event) => setSearch(event.target.value)}
+        placeholder="Search docs"
+      />
+
+      <HighlightWithin
+        as="section"
+        search={search}
+        highlightInput
+        highlightTextarea
+      >
+        <article>
+          <h1>Learn React faster</h1>
+          <p>Rendered content, inputs, and textareas all update live.</p>
+        </article>
+
+        <input value="React input example" readOnly />
+        <textarea value="React textarea example" readOnly />
+      </HighlightWithin>
+    </>
   );
 }
 ```
 
-## API
+## Why It Wins
 
-### `highlightWithin(element, options)`
+- Works on rendered output, not only literal JSX text
+- Includes nested children without reshaping your component tree
+- Supports opt-in highlighting for `input` and `textarea`
+- Uses reversible DOM updates instead of `innerHTML`
 
-**Options:**
+## Key Props
 
-- `search` (string, required) - Text to highlight
-- `bgColor` (string, optional) - Background color (default: '#FFD666')
-- `textColor` (string, optional) - Text color (default: '#1C252E')
-- `caseSensitive` (boolean, optional) - Case-sensitive search (default: false)
-- `highlightStyle` (CSSProperties, optional) - Custom highlight styles
+- `search`
+- `highlightInput`
+- `highlightTextarea`
+- `bgColor`
+- `textColor`
+- `highlightStyle`
+- `caseSensitive`
+- `as`
+
+## Legacy Function
+
+`highlightWithin()` is deprecated and kept only for compatibility. New code should use `HighlightWithin`.
+
+## Supported Inputs
+
+`text`, `search`, `email`, `url`, `tel`
+
+## Contributing
+
+Issues and pull requests are welcome. If you want to change behavior or add a feature, open a PR with a clear example of the expected result.
 
 ## License
 

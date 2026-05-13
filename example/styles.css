@@ -1,0 +1,278 @@
+:root {
+  color-scheme: light;
+  --ink: #162126;
+  --muted: #50636b;
+  --paper: #f6efe4;
+  --panel: rgba(255, 251, 245, 0.82);
+  --line: rgba(22, 33, 38, 0.12);
+  --teal: #0f8a7e;
+  --teal-deep: #0d675e;
+  --amber: #f0b34f;
+  --shadow: 0 24px 70px rgba(12, 35, 34, 0.14);
+  font-family: "Space Grotesk", "Avenir Next", "Segoe UI Variable", sans-serif;
+  background:
+    radial-gradient(
+      circle at top left,
+      rgba(15, 138, 126, 0.2),
+      transparent 30%
+    ),
+    radial-gradient(
+      circle at 85% 14%,
+      rgba(240, 179, 79, 0.22),
+      transparent 24%
+    ),
+    linear-gradient(180deg, #fdf9f2 0%, #efe8de 100%);
+  color: var(--ink);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+.app-shell {
+  position: relative;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+.ambient {
+  position: absolute;
+  width: 22rem;
+  height: 22rem;
+  border-radius: 999px;
+  filter: blur(16px);
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.ambient--left {
+  top: 4rem;
+  left: -6rem;
+  background: rgba(15, 138, 126, 0.18);
+}
+
+.ambient--right {
+  top: 18rem;
+  right: -4rem;
+  background: rgba(240, 179, 79, 0.22);
+}
+
+.layout {
+  position: relative;
+  z-index: 1;
+  width: min(1100px, calc(100% - 2rem));
+  margin: 0 auto;
+  padding: 2rem 0 4rem;
+}
+
+.hero,
+.panel {
+  backdrop-filter: blur(14px);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(18rem, 0.85fr);
+  gap: 1.5rem;
+  padding: 1.5rem;
+  border-radius: 30px;
+}
+
+.hero-copy h1 {
+  margin: 0.25rem 0 0.8rem;
+  max-width: 11ch;
+  font-size: clamp(2.5rem, 6vw, 4.8rem);
+  line-height: 0.95;
+  letter-spacing: -0.05em;
+}
+
+.hero-copy p,
+.panel p,
+.note-list {
+  color: var(--muted);
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  background: rgba(22, 33, 38, 0.06);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.controls,
+.field,
+.field-stack {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.field {
+  color: var(--ink);
+  font-size: 0.94rem;
+}
+
+.field input,
+.field textarea {
+  width: 100%;
+  border: 1px solid rgba(22, 33, 38, 0.14);
+  background: rgba(255, 255, 255, 0.76);
+  border-radius: 18px;
+  padding: 0.9rem 1rem;
+  color: var(--ink);
+}
+
+.field textarea {
+  min-height: 7rem;
+  resize: vertical;
+}
+
+.field input:focus,
+.field textarea:focus {
+  outline: 2px solid rgba(15, 138, 126, 0.2);
+  border-color: rgba(15, 138, 126, 0.45);
+}
+
+.action {
+  justify-self: start;
+  border: 0;
+  border-radius: 999px;
+  padding: 0.85rem 1.15rem;
+  background: linear-gradient(135deg, var(--teal) 0%, var(--teal-deep) 100%);
+  color: #f0fbf8;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.action:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 28px rgba(13, 103, 94, 0.24);
+}
+
+.toggle-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+}
+
+.toggle-chip {
+  border: 1px solid rgba(22, 33, 38, 0.12);
+  border-radius: 999px;
+  padding: 0.55rem 0.85rem;
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--ink);
+  cursor: pointer;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease;
+}
+
+.toggle-chip[aria-pressed="true"] {
+  background: rgba(15, 138, 126, 0.12);
+  border-color: rgba(15, 138, 126, 0.35);
+}
+
+.preview-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 1.25rem;
+}
+
+.panel {
+  padding: 1.25rem;
+  border-radius: 24px;
+}
+
+.panel--wide {
+  grid-column: span 2;
+}
+
+.story-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+  gap: 1rem;
+}
+
+.story-card {
+  padding: 1.05rem;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(22, 33, 38, 0.08);
+}
+
+.story-card--hero {
+  background:
+    linear-gradient(
+      135deg,
+      rgba(15, 138, 126, 0.12),
+      rgba(255, 255, 255, 0.78)
+    ),
+    rgba(255, 255, 255, 0.78);
+}
+
+.story-card h2 {
+  margin: 0.45rem 0 0.75rem;
+  font-size: 1.55rem;
+  line-height: 1.04;
+}
+
+.note-list {
+  margin: 0.8rem 0 0;
+  padding-left: 1.2rem;
+  display: grid;
+  gap: 0.6rem;
+}
+
+.legacy-panel {
+  margin-top: 1rem;
+}
+
+mark[data-highlight-within="true"] {
+  box-shadow: 0 0 0 1px rgba(22, 33, 38, 0.06);
+}
+
+@media (max-width: 900px) {
+  .hero,
+  .preview-grid,
+  .story-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .panel--wide {
+    grid-column: span 1;
+  }
+
+  .layout {
+    width: min(100% - 1rem, 1100px);
+    padding-top: 1rem;
+  }
+
+  .hero-copy h1 {
+    max-width: 13ch;
+  }
+}
