@@ -1,5 +1,22 @@
-import type { ControlHighlightState, HighlightableControl } from "./types";
-import { controlHighlightStates } from "./types";
+/**
+ * Lifecycle management for the form-control overlay path. You can't put a
+ * `<mark>` inside an `<input>` — inputs render plain strings, not HTML —
+ * so this module attaches an absolutely-positioned `<div>` highlight layer
+ * behind each input/textarea, makes the input's own background transparent, and
+ * keeps the layer in sync with input/scroll/resize events.
+ *
+ * Per-control bookkeeping (overlay node, listeners, original styles) lives
+ * in the `ControlStateMap` owned by the engine that called these helpers,
+ * threaded through every function as an explicit parameter.
+ *
+ * Sync of the overlay's visible content lives in `appearanceControl`.
+ */
+
+import type {
+  ControlHighlightState,
+  ControlStateMap,
+  HighlightableControl,
+} from "./types";
 import { CONTROL_ATTRIBUTE, CONTROL_OVERLAY_ATTRIBUTE } from "./constants";
 import type { DomHighlightOptions } from "./optionsDom";
 import {
@@ -8,6 +25,11 @@ import {
 } from "./appearanceControl";
 import { shouldHighlightControl } from "./visibility";
 
+/**
+ * Builds the empty overlay `<div>` and its inner content `<div>`. Geometry
+ * and typography are applied later by `syncControlOverlay` once we have
+ * the control's computed style.
+ */
 const createOverlayElements = (
   control: HighlightableControl,
 ): Pick<ControlHighlightState, "overlay" | "content"> => {
@@ -20,7 +42,7 @@ const createOverlayElements = (
   overlay.style.overflow = "hidden";
   overlay.style.boxSizing = "border-box";
   overlay.style.background = "transparent";
-  overlay.style.zIndex = "1";
+  overlay.style.zIndex = "0";
 
   content.style.position = "relative";
   content.style.boxSizing = "border-box";
@@ -30,12 +52,19 @@ const createOverlayElements = (
   return { overlay, content };
 };
 
+/**
+ * Attaches an overlay to a single control. Idempotent — if the control
+ * already has state in `states`, just re-syncs instead of re-attaching.
+ * Also flips the parent's `position` to `relative` if it was `static`,
+ * so the absolute overlay anchors correctly.
+ */
 export const attachControlHighlight = (
   control: HighlightableControl,
   options: DomHighlightOptions,
+  states: ControlStateMap,
 ): void => {
-  if (controlHighlightStates.has(control)) {
-    syncControlOverlay(control, options);
+  if (states.has(control)) {
+    syncControlOverlay(control, options, states);
     return;
   }
 
@@ -48,10 +77,10 @@ export const attachControlHighlight = (
   const { overlay, content } = createOverlayElements(control);
   const restoreInlinePosition = parent.style.position;
 
-  if (
-    control.ownerDocument.defaultView?.getComputedStyle(parent).position ===
-    "static"
-  ) {
+  const parentPosition =
+    control.ownerDocument.defaultView?.getComputedStyle(parent).position;
+
+  if (!parentPosition || parentPosition === "static") {
     parent.style.position = "relative";
   }
 
@@ -61,31 +90,60 @@ export const attachControlHighlight = (
     overlay,
     content,
     parent,
-    syncOverlay: () => syncControlOverlay(control, options),
-    handleInput: () => syncControlOverlay(control, options),
-    handleScroll: () => syncControlOverlay(control, options),
+    syncOverlay: () => syncControlOverlay(control, options, states),
+    handleInput: () => syncControlOverlay(control, options, states),
+    handleScroll: () => syncControlOverlay(control, options, states),
     restoreInlineColor: control.style.color,
     restoreInlineCaretColor: control.style.caretColor,
+    restoreInlineBackground: control.style.background,
+    restoreInlineControlPosition: control.style.position,
+    restoreInlineControlZIndex: control.style.zIndex,
     restoreInlinePosition,
     restoreInlineTextFillColor: control.style.getPropertyValue(
       "-webkit-text-fill-color",
     ),
   };
 
-  controlHighlightStates.set(control, state);
+  states.set(control, state);
   control.setAttribute(CONTROL_ATTRIBUTE, "true");
   control.addEventListener("input", state.handleInput);
   control.addEventListener("scroll", state.handleScroll);
 
   if (typeof ResizeObserver !== "undefined") {
-    state.resizeObserver = new ResizeObserver(state.syncOverlay);
+    state.resizeObserver = new ResizeObserver(() => {
+      const view = control.ownerDocument.defaultView;
+
+      if (!view?.requestAnimationFrame) {
+        state.syncOverlay();
+        return;
+      }
+
+      if (state.resizeAnimationFrame !== undefined) {
+        return;
+      }
+
+      state.resizeAnimationFrame = view.requestAnimationFrame(() => {
+        state.resizeAnimationFrame = undefined;
+        state.syncOverlay();
+      });
+    });
     state.resizeObserver.observe(control);
   }
 
-  syncControlOverlay(control, options);
+  syncControlOverlay(control, options, states);
 };
 
-export const clearControlHighlights = (root: HTMLElement): void => {
+/**
+ * Detaches every overlay under `root`. For each tracked control: removes
+ * listeners, disconnects the ResizeObserver, restores original inline
+ * styles (color, caret-color, parent position, -webkit-text-fill-color),
+ * removes the overlay node, and clears the state entry. Also sweeps any
+ * orphaned overlay nodes that lost their state record.
+ */
+export const clearControlHighlights = (
+  root: HTMLElement,
+  states: ControlStateMap,
+): void => {
   const controls = Array.from(
     root.querySelectorAll<HighlightableControl>(
       `[${CONTROL_ATTRIBUTE}='true']`,
@@ -93,7 +151,7 @@ export const clearControlHighlights = (root: HTMLElement): void => {
   );
 
   controls.forEach((control) => {
-    const state = controlHighlightStates.get(control);
+    const state = states.get(control);
 
     if (!state) {
       control.removeAttribute(CONTROL_ATTRIBUTE);
@@ -103,7 +161,12 @@ export const clearControlHighlights = (root: HTMLElement): void => {
     control.removeEventListener("input", state.handleInput);
     control.removeEventListener("scroll", state.handleScroll);
     state.resizeObserver?.disconnect();
-    restoreControlAppearance(control);
+    if (state.resizeAnimationFrame !== undefined) {
+      control.ownerDocument.defaultView?.cancelAnimationFrame(
+        state.resizeAnimationFrame,
+      );
+    }
+    restoreControlAppearance(control, states);
 
     if (state.overlay.parentNode) {
       state.overlay.parentNode.removeChild(state.overlay);
@@ -111,7 +174,7 @@ export const clearControlHighlights = (root: HTMLElement): void => {
 
     state.parent.style.position = state.restoreInlinePosition;
     control.removeAttribute(CONTROL_ATTRIBUTE);
-    controlHighlightStates.delete(control);
+    states.delete(control);
   });
 
   Array.from(
@@ -121,9 +184,16 @@ export const clearControlHighlights = (root: HTMLElement): void => {
   });
 };
 
+/**
+ * Entry point for the form-control path. Finds every `<input>` and
+ * `<textarea>` under `root`, filters them through `shouldHighlightControl`
+ * (respecting the `highlightInput` / `highlightTextarea` opt-ins and
+ * supported input types), and attaches an overlay to each.
+ */
 export const applyControlHighlights = (
   root: HTMLElement,
   options: DomHighlightOptions,
+  states: ControlStateMap,
 ): void => {
   const controls = Array.from(
     root.querySelectorAll<HighlightableControl>("input, textarea"),
@@ -134,6 +204,6 @@ export const applyControlHighlights = (
       return;
     }
 
-    attachControlHighlight(control, options);
+    attachControlHighlight(control, options, states);
   });
 };

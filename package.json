@@ -1,13 +1,13 @@
 {
   "name": "react-highlight-within",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "description": "React component and function for highlighting search matches across rendered content, nested children, inputs, and textareas",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
-  "types": "./dist/index.d.ts",
+  "types": "./dist/src/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
+      "types": "./dist/src/index.d.ts",
       "import": "./dist/index.mjs",
       "require": "./dist/index.js"
     }
@@ -16,10 +16,13 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsup src/index.tsx --format cjs,esm --dts --clean",
+    "build": "vite build",
     "build:example": "vite build --config example/vite.config.ts",
-    "dev:example": "vite --config example/vite.config.ts",
-    "preview:example": "vite preview --config example/vite.config.ts",
+    "dev": "vite --config example/vite.config.ts",
+    "preview": "vite preview --config example/vite.config.ts",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "coverage": "vitest run --coverage",
     "prepublishOnly": "npm run build"
   },
   "keywords": [
@@ -36,14 +39,21 @@
     "react": ">=16.8.0"
   },
   "devDependencies": {
+    "@testing-library/dom": "^10.4.0",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.1",
+    "@vitest/coverage-v8": "^4.1.6",
+    "jsdom": "^29.1.1",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
-    "tsup": "^8.5.1",
     "typescript": "^6.0.3",
-    "vite": "^8.0.12"
+    "vite": "^8.0.12",
+    "vite-plugin-dts": "^5.0.0",
+    "vitest": "^4.1.6"
   },
   "repository": {
     "type": "git",

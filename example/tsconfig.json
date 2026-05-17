@@ -2,7 +2,12 @@
   "extends": "../tsconfig.json",
   "compilerOptions": {
     "noEmit": true,
-    "types": ["vite/client"]
+    "types": ["vite/client"],
+    "baseUrl": ".",
+    "rootDir": "..",
+    "paths": {
+      "react-highlight-within": ["../src/index.tsx"]
+    }
   },
-  "include": ["./*.ts", "./*.tsx"]
+  "include": ["./main.tsx"]
 }
